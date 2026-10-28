@@ -138,7 +138,7 @@
 
                                 ini_set('display_errors', 1);
 
-                                putenv('INFORMIXDIR=/opt/informix'); 
+                                putenv('INFORMIXDIR=/opt/IBM/informix'); 
                                 putenv('DBDATE=dmy4/'); 
                                 $db = new PDO("informix:host=db;service=munivl_tcp;database=compras2;server=munivl_tcp;protocol=onsoctcp;EnableScrollableCursors=1;","npiersanti","nicolasjorgepier");
                                        $selectrecibo ='SELECT * from recibolici';
