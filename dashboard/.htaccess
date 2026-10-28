@@ -1,0 +1,8 @@
+# Bloquear listado de directorios
+Options -Indexes
+# Impedir acceso directo al archivo de validación
+<Files "check_session.php">
+    Order allow,deny
+    Deny from all
+</Files>
+

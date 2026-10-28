@@ -1,0 +1,135 @@
+<?php
+
+include 'connecto2.php';
+
+$codigo = $_REQUEST['codigo'];
+
+    $titulo = '';
+
+    if (isset($_REQUEST["titulo"]) and $_REQUEST["titulo"] != ''){
+        $titulo = $_REQUEST["titulo"];
+    }
+
+    $tipo = $_REQUEST["tipo"];
+
+    $nrocontratacion = ' null ';
+
+    if (isset($_REQUEST["nrocontratacion"]) and $_REQUEST["nrocontratacion"] != ''){
+        $nrocontratacion = $_REQUEST["nrocontratacion"];
+    }
+
+    $sector = '';
+
+    if (isset($_REQUEST["sector"]) and $_REQUEST["sector"] != ''){
+        $sector = $_REQUEST["sector"];
+    }
+
+    $apertura = '';
+
+    if (isset($_REQUEST["apertura"]) and $_REQUEST["apertura"] != ''){
+        $apertura = $_REQUEST["apertura"];
+    }
+
+    $objeto = '';
+
+    if (isset($_REQUEST["objeto"]) and $_REQUEST["objeto"] != ''){
+        $objeto = $_REQUEST["objeto"];
+    }
+
+    $presupuesto = '';
+
+    if (isset($_REQUEST["presupuesto"]) and $_REQUEST["presupuesto"] != ''){
+        $presupuesto = $_REQUEST["presupuesto"];
+    }
+
+
+    $valor10 = ' null ';
+
+    if (isset($_REQUEST["valor10"]) and $_REQUEST["valor10"] != ''){
+        $valor10 = $_REQUEST["valor10"];
+    }
+
+    $usuario = ' null ';
+
+    if (isset($_REQUEST["usuario"]) and $_REQUEST["usuario"] != ''){
+        $usuario = $_REQUEST["usuario"];
+    }
+
+
+  $fecha_año = $_REQUEST['ano'];
+
+    $fechalimite = ' null ';
+
+    if (isset($_REQUEST["fechalimite"]) and $_REQUEST["fechalimite"] != ''){
+        $fechalimite = $_REQUEST["fechalimite"];
+    }
+
+
+  $fechalimite= $_REQUEST["fechalimite"];
+
+  /*
+   * verificacion de tipo, numero y año de contratacion
+   */
+
+
+   $and_tipo = " and tipo = ".$_REQUEST['tipo'];
+
+   $and_anio = " and ano = ".$_REQUEST['ano'];
+
+
+
+    $sql="SELECT count(*) as cant
+            FROM licitacion
+            where id =".$_REQUEST['nrocontratacion'].$and_tipo.$and_anio;
+
+
+//    echo $sql;
+
+    // echo "<br>";
+
+    $row = $db->query($sql);
+
+    $dato = $row->fetch();
+
+
+
+    if ($dato[0] > 0){
+
+        echo 1; //error 1 : ya existe ese numero de contratacion para ese tipo para ese año
+    }
+    else {
+
+        $sector = str_replace(",", "", $sector);
+
+
+        $insertlicitacion ='INSERT INTO licitacion(id,presupuesto,titulo,estado,valor,objeto,tipo,numero,ano,usuariocreador_id,nota,activa,codigo)
+        VALUES('.$nrocontratacion.',"'.$presupuesto.'","'.$titulo.'","PUBLICADA",'.$valor10.',"'.$objeto.'",'.$tipo.','.$nrocontratacion.','.$fecha_año.','.$usuario.',\'\',1,'.$codigo.')';
+//echo $insertlicitacion;die;
+
+        $insertapertura ='INSERT INTO apertura VALUES('.$nrocontratacion.',"'.$apertura.':00","PRIMER LLAMADO",'.$tipo.','.$_REQUEST['ano'].' )';
+
+
+        $insertlimite ='INSERT INTO apertura VALUES('.$nrocontratacion.',"'.$fechalimite.':00","FECHA LIMITE DE COMPRA",'.$tipo.','.$_REQUEST['ano'].' )';
+
+
+        // echo $_REQUEST["titulo"].$_REQUEST["tipo"].$_REQUEST["nrocontratacion"].$_REQUEST["sector"].$_REQUEST["apertura"].$_REQUEST["objeto"].$_REQUEST["presupuesto"].$_REQUEST["valor10"].$_REQUEST["usuario"];
+
+        /*echo $insertlicitacion;
+        echo $insertapertura;
+        echo $insertlimite;
+        exit();*/
+
+        $db->query($insertlicitacion);
+        $db->query($insertapertura);
+        $db->query($insertlimite);
+
+        echo "0";
+
+
+
+
+    }
+
+
+
+

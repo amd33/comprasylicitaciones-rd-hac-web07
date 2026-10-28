@@ -1,0 +1,12 @@
+<?php
+include("connecto2.php");
+$id = $_REQUEST["id"];
+
+$bloquearUsuario=" update usuario
+                   set habilitado = 0
+                   where id = ".$id;
+
+$db->query($bloquearUsuario);
+
+
+echo $bloquearUsuario;

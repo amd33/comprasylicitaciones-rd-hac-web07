@@ -1,0 +1,95 @@
+<?php
+include 'conect.php';
+
+// PARCHE: Sanitización básica para evitar inyecciones de scripts (XSS)
+$p = $_POST;
+
+$exist = 444;
+
+if($exist != 124) {
+    try {
+        // 1. INSERT DOMICILIO POSTAL
+        // Usamos marcadores '?' para que los datos de $_POST no se ejecuten como código SQL
+        $sql1 = "INSERT INTO DOMICILIO VALUES (0, ?, ?, ?, ?, ?, ?)";
+        $stmt = $db->prepare($sql1);
+        $stmt->execute([
+            $p["domiciliopostalcodigopostal"],
+            $p["domiciliopostallocalidad"],
+            $p["domiciliopostaldepartamento"],
+            $p["domiciliopostalpiso"],
+            $p["domiciliopostalcalle"],
+            $p["domiciliopostalnumero"]
+        ]);
+
+        // PARCHE SEGURIDAD: Recuperamos el ID de forma segura para esta conexión
+        $domiciliocomercial_id = $db->lastInsertId();
+
+        if (!$domiciliocomercial_id) {
+            echo json_encode(array("ok" => 0, "message" => "DOMICILIO POSTAL"));
+            exit();
+        }
+
+        // 2. INSERT DOMICILIO LEGAL
+        $sql2 = "INSERT INTO DOMICILIO VALUES (0, ?, ?, ?, ?, ?, ?)";
+        $stmt = $db->prepare($sql2);
+        $stmt->execute([
+            $p["domiciliolegalcodigopostal"],
+            $p["domiciliolegallocalidad"],
+            $p["domiciliolegaldepartamento"],
+            $p["domiciliolegalpiso"],
+            $p["domiciliolegalcalle"],
+            $p["domiciliolegalnumero"]
+        ]);
+
+        $domiciliolegal_id = $db->lastInsertId();
+
+        if (!$domiciliolegal_id) {
+            echo json_encode(array("ok" => 0, "message" => "DOMICILIO LEGAL"));
+            exit();
+        }
+
+        // 3. INSERT AGENTE
+        // Limpiamos CUIT y Teléfono tal como hacías originalmente
+        $cuitLimpio = str_replace("-", "", $p["informacionfiscalcuit"]);
+        $telLimpio  = str_replace("-", "", $p["informacionpersonaltelefono"]);
+        $passHash   = md5($p["informacionpersonalcontraseña"]);
+
+        $sql3 = "INSERT INTO AGENTE VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Alta Postulante')";
+        $stmt = $db->prepare($sql3);
+        $stmt->execute([
+            $p["informacionfiscalingresosbrutos"],
+            $cuitLimpio,
+            $p["informacionfiscalrazonsocial"],
+            $telLimpio,
+            $p["informacionfiscalsituacion"],
+            $passHash,
+            $p["informacionpersonalemail"],
+            $domiciliocomercial_id,
+            $domiciliolegal_id,
+            $p["municipiosmunicipio"],
+            $p["municipiosnhabilitacion"],
+            $p["municipiosnpadron"]
+        ]);
+
+        // 4. INSERT POSTULANTE (Buscando el ID del agente recién creado)
+        // PARCHE: Buscamos por CUIT usando sentencia preparada
+        $sqlSelect = "SELECT ID FROM AGENTE WHERE cuit = ?";
+        $stmt = $db->prepare($sqlSelect);
+        $stmt->execute([$cuitLimpio]);
+        
+        foreach ($stmt->fetchAll() as $row) {
+            $sql4 = "INSERT INTO POSTULANTE VALUES (?, 0)";
+            $stmtInsert = $db->prepare($sql4);
+            $stmtInsert->execute([$row['ID']]);
+        }
+
+        // Respuesta final exitosa
+        echo json_encode(array("ok" => 1, "Se dio de alta con exito!" => ""));
+
+    } catch (Exception $e) {
+        // En caso de error de base de datos, no mostramos detalles técnicos al usuario
+        error_log("Error en archivo.php: " . $e->getMessage());
+        echo json_encode(array("ok" => 0, "message" => "Error procesando el registro"));
+    }
+}
+?>

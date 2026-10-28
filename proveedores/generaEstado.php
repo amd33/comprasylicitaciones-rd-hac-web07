@@ -1,0 +1,31 @@
+<?php
+  include("conect.php");
+  $cuit=$_REQUEST["cuit"];
+  $texto=strtoupper($_REQUEST["texto"]);
+  $comentario=strtoupper($_REQUEST["comentario"]);
+
+
+  	$select ="SELECT ID FROM AGENTE WHERE cuit =".str_replace("-", "", $cuit);
+  	//echo $select;
+	foreach ($db->query($select) as $row) {
+	    $idgeneral = $row['ID'];
+      if ($texto == "APROBADO") {
+          
+        $update ="UPDATE  AGENTE SET cuit=-".str_replace("-", "", $cuit)." WHERE cuit =".str_replace("-", "", $cuit);
+        echo $update;
+        foreach ($db->query($update) as $row) {
+            
+         }    
+      }
+	 }    
+
+   $insert="INSERT INTO LOGCONTRATADOS VALUES (".$idgeneral.",TODAY,'".$texto."','".$comentario."',1,1)";
+             //echo $insert;
+	$db->query($insert);
+
+	$insert="UPDATE agente SET ultimo_estado ='".$texto."' WHERE id =".$idgeneral;
+	//echo $insert;
+	$db->query($insert);
+
+  
+  ?>

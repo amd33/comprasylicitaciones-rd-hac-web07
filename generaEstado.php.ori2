@@ -1,0 +1,51 @@
+<?php
+  include("conect.php");
+
+  // 1. Captura y limpieza básica
+  $cuitRaw = isset($_REQUEST["cuit"]) ? $_REQUEST["cuit"] : '';
+  $cuitSaneado = str_replace("-", "", $cuitRaw);
+  
+  $texto = strtoupper($_REQUEST["texto"] ?? '');
+  $comentario = strtoupper($_REQUEST["comentario"] ?? '');
+
+  // Validar que el CUIT sea numérico para mayor seguridad
+  if (!ctype_digit($cuitSaneado)) {
+      die("Formato de CUIT inválido.");
+  }
+
+  try {
+      // 2. SELECT usando Sentencia Preparada
+      $stmt = $db->prepare("SELECT ID FROM AGENTE WHERE cuit = ?");
+      $stmt->execute([$cuitSaneado]);
+      $row = $stmt->fetch();
+
+      if ($row) {
+          $idgeneral = $row['ID'];
+
+          if ($texto == "APROBADO") {
+              // 3. UPDATE CUIT (Usamos marcadores '?' para evitar inyección)
+              $cuitNegativo = "-" . $cuitSaneado;
+              $update = $db->prepare("UPDATE AGENTE SET cuit = ? WHERE cuit = ?");
+              $update->execute([$cuitNegativo, $cuitSaneado]);
+          }
+
+          // 4. INSERT en LOGCONTRATADOS
+          // Asumimos que TODAY es una función de tu DB (como en Informix)
+          $insertLog = $db->prepare("INSERT INTO LOGCONTRATADOS (id_agente, fecha, estado, comentario, val1, val2) VALUES (?, TODAY, ?, ?, 1, 1)");
+          $insertLog->execute([$idgeneral, $texto, $comentario]);
+
+          // 5. UPDATE último estado
+          $updateEstado = $db->prepare("UPDATE agente SET ultimo_estado = ? WHERE id = ?");
+          $updateEstado->execute([$texto, $idgeneral]);
+
+          echo "Proceso completado con éxito.";
+      } else {
+          echo "Agente no encontrado.";
+      }
+
+  } catch (Exception $e) {
+      // Log interno, mensaje genérico al usuario
+      error_log("Error en generaEstado.php: " . $e->getMessage());
+      echo "Error al procesar la solicitud.";
+  }
+?>

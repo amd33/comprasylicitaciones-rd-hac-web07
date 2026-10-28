@@ -1,0 +1,82 @@
+<?php
+  include("conect.php");
+
+    $AGENTE="SELECT * FROM LOGCONTRATADOS WHERE agente 
+    IN(SELECT id FROM AGENTE WHERE cuit =".$_REQUEST['cuit'].")";
+  
+  
+  foreach ($db->query($AGENTE) as $row) {
+    $usuarioid=$row['USUARIO_ID'];
+    $ID_USUARIO="SELECT * from USUARIO WHERE id=".$usuarioid;
+    
+    if (trim($usuarioid)=="") {
+      $nombre  =  "No ";
+      $apelido =  "definido";
+      $secretaria_id =  "No definido";
+    }else{
+      foreach ($db->query($ID_USUARIO) as $rowusuario) {
+        $nombre  =  $rowusuario["NOMBRE"];
+        $apelido =  $rowusuario["APELLIDO"];
+        $secretaria_id =  $rowusuario["SECRETARIA_ID"];
+      }
+    }
+    
+   
+    
+    if ($secretaria_id=="No definido") {
+      $nombresecretaria ="No definido";
+    }else{
+      $SECRETARIA_ID="SELECT * from SECRETARIA WHERE id=".$secretaria_id;
+      foreach ($db->query($SECRETARIA_ID) as $rowdescripcionsecretaria) {
+        $nombresecretaria  =  $rowdescripcionsecretaria["NOMBRE"]; 
+      }
+    }
+    
+
+    ?>
+    <div class="activity">
+        <div class="activity-icon bg-primary text-white shadow-primary">
+          <?php
+          switch (trim($row['ACCIONCONTRATADOS'])) {
+            case 'Alta postulante':
+              echo '<i class="fas fa-plus-square icon-estado"></i>';
+              break;
+            case 'Observar':
+              echo '<i class="fas fa-warning icon-estado"></i>';
+              break;
+            case 'Edicion postulante':
+              echo '<i class="fas fa-edit icon-estado"></i>';
+              break;
+            case 'Edicion postulante':
+              echo '<i class="fas fa-edit icon-estado"></i>';
+              break;
+            case 'Rechazar':
+              echo '<i class="fas fa-times icon-estado"></i>';
+              break;
+            case 'Aprobar':
+              echo '<i class="fas fa-check-double icon-estado"></i>';
+              break;
+            case 'Documentacion':
+              echo '<i class="fas fa-file-alt icon-estado"></i>';
+              break;
+            
+
+            default:
+              
+              break;
+          }
+          
+          ?>
+          
+        </div>
+        <div class="activity-detail">
+          <div class="mb-2">
+            <span class="text-job"><?php echo $row['FECHA'];?></span>
+            <span class="bullet"></span>
+            
+          </div>
+          <p class="text-uppercase">"Desde <a href="#"><u><?php echo $nombresecretaria; ?> </u></a>  <b><?php echo $nombre."  ".$apelido;?></b> genero un estado <a href="#"><u><?php echo $row['ACCIONCONTRATADOS'];?></u></a>".</p>
+        </div>
+      </div>
+   <?php }
+  ?>

@@ -1,0 +1,14 @@
+<?php
+include 'conect.php';
+$select ="SELECT * FROM AGENTE WHERE cuit = ".$_REQUEST["cuit"];
+
+foreach ($db->query($select) as $row) {
+    $selectrubro="SELECT * FROM RUBRO  WHERE id =".$row['ID'];
+    
+    foreach ($db->query($selectrubro) as $rowselectrubro) {
+    	echo $rowselectrubro["FK_PARENT_RUBRO"]." - ".$rowselectrubro["NOMBRE"];
+    	echo "<br>";
+    }
+
+ }     
+?>

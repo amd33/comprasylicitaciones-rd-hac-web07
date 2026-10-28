@@ -1,0 +1,56 @@
+<?php
+  include("connecto2.php");
+
+
+$AGENTE="select *, case when habilitado = 1 then 'Si'
+                else 'No' end as habilit
+         from usuario           
+        ";
+
+        
+  foreach ($db->query($AGENTE, PDO::FETCH_ASSOC) as $row){
+
+
+    ?>
+
+    <tr data-ri="0" class="warning" role="row"
+    data-id="<?php echo $row['ID']; ?>"
+    data-nombre="<?php echo $row['NOMBRE']; ?>"
+    data-apellido="<?php echo $row['APELLIDO']; ?>"
+    data-usuario="<?php echo $row['USUARIO']; ?>"
+    data-correo="<?php echo trim($row['CORREO']); ?>"
+    data-habilitado="<?php echo trim($row['HABILIT']); ?>">
+    
+
+   	 <td><?php echo $row['ID']; ?></td>
+   	 <td><?php echo $row['NOMBRE']; ?></td>
+     <td><?php echo $row['APELLIDO']; ?></td>
+	   <td><?php echo $row['USUARIO']; ?></td>
+	   <td><?php echo $row['CORREO']; ?></td>
+       <td><?php echo $row['HABILIT']; ?></td>
+      
+       <?php 
+       if ($row['HABILITADO'] == 1) {
+       ?>
+        <td colspan="1" style="padding:0.1%">
+
+            <a class="btn btn-outline-danger borrar" data-target="#borrar" data-id="<?php echo $row['ID']; ?>" >
+              <i class="fa fa-times" aria-hidden="true" title="Bloquear"></i>
+            </a>
+	    </td>
+        <?php
+       }
+       else { ?>
+        <td colspan="1" style="padding:0.1%">
+         <a class="btn btn-outline-success activar" data-target="#activar" data-id="<?php echo $row['ID']; ?>" >
+         <i class="fa fa-check" aria-hidden="true" title="Activar"></i>
+           </a>
+        </td>
+        <?php
+            }
+         ?>
+
+    </tr>
+
+   <?php  }
+  ?>

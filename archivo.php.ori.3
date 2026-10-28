@@ -1,0 +1,99 @@
+<?php
+//ini_set('display_errors', 0);  
+//error_reporting(0); 
+
+include 'conect.php';
+
+$p = $_POST;
+
+$campos_requeridos = [
+    "domiciliopostalcodigopostal", "domiciliopostallocalidad", "domiciliopostaldepartamento",
+    "domiciliopostalpiso", "domiciliopostalcalle", "domiciliopostalnumero",
+    "domiciliolegalcodigopostal", "domiciliolegallocalidad", "domiciliolegaldepartamento",
+    "domiciliolegalpiso", "domiciliolegalcalle", "domiciliolegalnumero",
+    "informacionfiscalcuit", "informacionfiscalrazonsocial", "informacionpersonaltelefono",
+    "informacionfiscalsituacion", "informacionpersonalcontraseña", "informacionpersonalemail",
+    "municipiosmunicipio", "municipiosnhabilitacion", "municipiosnpadron"
+];
+
+foreach ($campos_requeridos as $campo) {
+    if (!isset($p[$campo]) || empty(trim($p[$campo]))) { // [cite: 68, 88, 90]
+        echo json_encode(array("ok" => 0, "message" => "Campo obligatorio faltante: $campo"));
+        exit();
+    }
+}
+
+$exist = 444;
+
+if($exist != 124) {
+    try {
+        $db->beginTransaction();
+
+        $sql1 = "INSERT INTO DOMICILIO VALUES (0, ?, ?, ?, ?, ?, ?)";
+        $stmt = $db->prepare($sql1);
+        $stmt->execute([
+            $p["domiciliopostalcodigopostal"],
+            $p["domiciliopostallocalidad"],
+            $p["domiciliopostaldepartamento"],
+            $p["domiciliopostalpiso"],
+            $p["domiciliopostalcalle"],
+            $p["domiciliopostalnumero"]
+        ]);
+
+        $domiciliocomercial_id = $db->lastInsertId();
+
+        $sql2 = "INSERT INTO DOMICILIO VALUES (0, ?, ?, ?, ?, ?, ?)";
+        $stmt = $db->prepare($sql2);
+        $stmt->execute([
+            $p["domiciliolegalcodigopostal"],
+            $p["domiciliolegallocalidad"],
+            $p["domiciliolegaldepartamento"],
+            $p["domiciliolegalpiso"],
+            $p["domiciliolegalcalle"],
+            $p["domiciliolegalnumero"]
+        ]);
+
+        $domiciliolegal_id = $db->lastInsertId();
+
+        $cuitLimpio = str_replace("-", "", $p["informacionfiscalcuit"]);
+        $telLimpio  = str_replace("-", "", $p["informacionpersonaltelefono"]);
+        $passHash   = md5($p["informacionpersonalcontraseña"]);
+
+        $sql3 = "INSERT INTO AGENTE VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Alta Postulante')";
+        $stmt = $db->prepare($sql3);
+        $stmt->execute([
+            $p["informacionfiscalingresosbrutos"],
+            $cuitLimpio,
+            $p["informacionfiscalrazonsocial"],
+            $telLimpio,
+            $p["informacionfiscalsituacion"],
+            $passHash,
+            $p["informacionpersonalemail"],
+            $domiciliocomercial_id,
+            $domiciliolegal_id,
+            $p["municipiosmunicipio"],
+            $p["municipiosnhabilitacion"],
+            $p["municipiosnpadron"]
+        ]);
+
+        $sqlSelect = "SELECT ID FROM AGENTE WHERE cuit = ?";
+        $stmt = $db->prepare($sqlSelect);
+        $stmt->execute([$cuitLimpio]);
+
+        $rowAgente = $stmt->fetch();
+        if ($rowAgente) {
+            $sql4 = "INSERT INTO POSTULANTE VALUES (?, 0)";
+            $stmtInsert = $db->prepare($sql4);
+            $stmtInsert->execute([$rowAgente['ID']]);
+        }
+
+        $db->commit();
+        echo json_encode(array("ok" => 1, "Se dio de alta con exito!" => ""));
+
+    } catch (Exception $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        error_log("Falla en archivo.php: " . $e->getMessage()); 
+        echo json_encode(array("ok" => 0, "message" => "Error interno procesando el registro"));
+    }
+}
+?>

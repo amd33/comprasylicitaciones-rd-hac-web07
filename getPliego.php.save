@@ -1,0 +1,113 @@
+<?php
+
+include("connecto2.php");
+/*
+  if ( isset($_REQUEST['estado']) ) {
+
+    $tipo = $_REQUEST['tipo'];
+
+    $estado = $_REQUEST['estado'];
+
+
+    $AGENTE="SELECT * FROM licitacion WHERE  tipo='".$tipo."' AND estado='".$estado."'";
+
+  }else{
+    $AGENTE="SELECT * FROM licitacion";
+  }
+  */
+
+  
+  $modal = 'info-fuera-servicio';
+
+if (date('w') >=1 and date('w') <=5){ //verifica que sea un dia habil
+
+  //verificar que sea entre las 8 y las 15hs
+
+  $desde="SELECT valor FROM config where id =  'VENTA-DIRECTA-HORA-INICIO' ";
+
+
+  foreach ($db->query($desde) as $row){
+      $desde = $row['VALOR'];
+  }
+
+  $hasta="SELECT valor FROM config where id =  'VENTA-DIRECTA-HORA-FIN' ";
+
+
+  foreach ($db->query($hasta) as $row){
+      $hasta = $row['VALOR'];
+  }
+
+
+  $hora_actual = intval(date("H"));
+  if ($hora_actual >= $desde && $hora_actual < $hasta) {
+    
+  $modal = 'info';
+
+  }
+
+}
+
+
+
+$modal = 'info';
+
+
+
+
+
+
+$licitaciones="select licitacion.*,xxx.FECHA,tipo_pliego.descripcion
+                from licitacion
+                left join
+                (
+                  select id, tipo,ano,to_char(max(fecha),  '%d-%m-%Y:%H:%M') as FECHA
+                  from apertura
+                  where descripcion in ('PRIMER LLAMADO','SEGUNDO LLAMADO')
+                  group by id,tipo,ano
+                  
+                ) xxx on licitacion.id = xxx.id and licitacion.tipo = xxx.tipo and licitacion.ano = xxx.ano
+                left join tipo_pliego on licitacion.tipo = tipo_pliego.codigo
+                where activa = 1
+                order by xxx.FECHA desc
+                ";
+
+
+foreach ($db->query($licitaciones) as $row){
+
+    ?>
+
+    <tr data-ri="0" class="warning"  role="row">
+        <td ><?php echo $row['DESCRIPCION']; ?></td>
+        <td ><?php echo $row['ID']; ?></td>
+        <td ><?php echo $row['ANO']; ?></td>
+        <td ><?php echo $row['OBJETO']; ?></td>
+        <td >$<?php echo $row['PRESUPUESTO']; ?></td>
+         <?php // echo '<td >'.date("d/m/Y H:i:s", strtotime($row["FECHA"])).'</td>';
+             echo '<td >'.$row["FECHA"].'</td>';
+        
+         //echo "<td>".$desde."-".$hasta."-".$hora_actual."</td>"
+          $ano = date("Y");
+          if($row['ANO']==$ano){  
+        ?>
+        
+       
+
+        <td class="text-center">
+            <a class="btn btn-info btn-action mr-1" data-toggle="modal" data-target="#<?php echo $modal; ?>"  data-nropliego="<?php echo $row['ID']; ?>" data-anopliego="<?php echo $row['ANO']; ?>"  data-presupuesto="<?php echo $row['PRESUPUESTO']; ?>" data-valorpliego="<?php echo $row['VALOR']; ?>"   data-estado="<?php echo $row['ESTADO']; ?>" data-tipocontra="<?php echo $row['TIPO']; ?>"  data-objeto="<?php echo $row['OBJETO']; ?>" data-txttipocontra="<?php echo $row['DESCRIPCION']; ?>" data-codigo="<?php echo $row['CODIGO']; ?>">Solicitud</a>
+        </td>
+
+       
+
+
+    </tr>
+    <?php } else{ echo '<td> ---- </td>';} ?>
+
+<?php  }
+?>
+
+
+
+
+
+
+

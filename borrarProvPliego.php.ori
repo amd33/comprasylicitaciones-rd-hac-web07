@@ -1,0 +1,20 @@
+<?php
+include("connecto2.php");
+$id_pliego = $_REQUEST["idpliego"];
+$tipo = $_REQUEST["tipo"];
+$nroproveedor = $_REQUEST["nroproveedor"];
+$ano_pliego = $_REQUEST["anopliego"];
+
+$borrarpliego=" delete from proveedor_pliego
+               where id_pliego = ".$id_pliego." and tipo = ".$tipo." and nro_proveedor = ".$nroproveedor." and ano = ".$ano_pliego;
+
+$db->query($borrarpliego);
+
+
+echo $borrarpliego;
+
+?>
+
+
+
+

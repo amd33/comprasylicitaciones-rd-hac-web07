@@ -1,0 +1,12 @@
+<?php
+include("connecto2.php");
+$id = $_REQUEST["id"];
+
+$activarUsuario=" update usuario
+                   set habilitado = 1
+                   where id = ".$id;
+
+$db->query($activarUsuario);
+
+
+echo $activarUsuario;
